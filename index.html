@@ -1,0 +1,53 @@
+<html>
+<head>
+	<title>PassportParking Challenge</title>
+	<script type="text/javascript" src="/js/jquery-1.9.1.js"></script>
+	<script type="text/javascript" src="/js/jquery-ui-1.10.3.custom.min.js"></script>
+	<script type="text/javascript" src="/js/handlebars.js"></script>
+	<script type="text/javascript" src="/js/jquery-ui-context-menu.min.js">
+	</script>
+	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+	<script type="text/javascript" src="/js/main.js"></script>
+
+	<link rel="stylesheet" type="text/css" href="/style/jquery-ui-1.10.3.custom.min.css">
+
+	<script type="template/handlebars" id="node-template">
+		<ul id={{id}}>
+			<li>{{text}}</li>
+		</ul>
+	</script>
+	<style>
+		#dialog-form {
+			display:none;
+		}
+
+		label, input { 
+			display:block;
+		}
+		label {
+			margin-top: 15px;
+		}
+	</style>
+</head>
+<body>
+	<div id="container">
+		<div id="links_container">
+			<a href="#" id="root_create">Create root</a>
+		</div>		
+		<div id="tree_container">
+			
+		</div>		
+	</div>
+	<div id="dialog-form">
+		<p class="validateTips">All form fields are required.</p>
+		<form>
+			<label for="name">Name</label>
+			<input type="text" name="name" id="name" class="text ui-widget-content ui-corner-all" />(should be between 3-12 characters)
+			<label for="max">Max</label>
+			<input type="text", name="maximum" id="max" value="" class="text ui-widget-content ui-corner-all"/>(should be a integer)
+			<label for="min">Min</label>
+			<input type="text", name="minimum" id="min" value="" class="text ui-widget-content ui-corner-all" />(should be a integer)
+		</form>
+	</div>
+</body>
+</html>
