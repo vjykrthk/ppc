@@ -9,13 +9,14 @@ var user = require('./routes/user');
 var http = require('http');
 var path = require('path');
 
+
 var app = express();
 
 var server = http.createServer(app)
 var io = require('socket.io').listen(server);
 
 // all environments
-app.set('port', process.env.PORT || 3000);
+app.set('port', process.env.PORT || 5000);
 app.set('views', __dirname + '/views');
 app.set('view engine', 'jade');
 app.use(express.favicon());
@@ -35,7 +36,12 @@ server.listen(app.get('port'));
 console.log("Listening on port" + app.get('port'));
 
 app.get('/', function(req, res) {
-	res.sendfile(__dirname + "/index.html")
+	res.sendfile(__dirname + "/index.html");
+});
+
+io.configure(function() {
+	io.set("transports", ["xhr-polling"]);
+	io.set("polling duration", 10);
 });
 
 io.sockets.on('connection', function(socket){
