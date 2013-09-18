@@ -8,6 +8,9 @@ var routes = require('./routes');
 var user = require('./routes/user');
 var http = require('http');
 var path = require('path');
+var pg = require('pg');
+
+var conString = process.env.DATABASE_URL || "postgres://admin:@localhost/ppcc";
 
 
 var app = express();
@@ -34,6 +37,36 @@ if ('development' == app.get('env')) {
 server.listen(app.get('port'));
 
 console.log("Listening on port" + app.get('port'));
+
+pg.connect(conString, function(err, client, done) {
+  if(err) {
+    return console.error('error fetching client from pool', err);
+  }
+  var table_parent_node = 'CREATE TABLE parent_node ( id SERIAL PRIMARY KEY NOT NULL, name TEXT NOT NULL, max INT NOT NULL, min INT NOT NULL)';
+  client.query(table_parent_node, function(err, result) {
+    done();
+
+    if(err) {
+      return console.error('error running query', err);
+    }
+    console.log(result);
+   });
+});
+
+pg.connect(conString, function(err, client, done) {
+  if(err) {
+    return console.error('error fetching client from pool', err);
+  }
+  var table_child_node = 'CREATE TABLE child_node ( random INT NOT NULL, parent_node_id INT NOT NULL)';
+  client.query(table_child_node, function(err, result) {
+    done();
+
+    if(err) {
+      return console.error('error running query', err);
+    }
+    console.log(result);
+   });
+});
 
 app.get('/', function(req, res) {
 	res.sendfile(__dirname + "/index.html");
