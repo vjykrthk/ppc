@@ -2,13 +2,21 @@ $(function() {
 	window.dialog_form = $('#dialog-form');
 	window.socket = io.connect();
 	
-	$("#root_create").on('click', function(evt) {
+	$("#root_reset_link").on('click', function(evt) {
 		evt.preventDefault();
-		socket.emit("create root node");
+		var $this = $(this);
+		if($this.hasClass("root_node_create")) {
+			socket.emit("create root node");
+		} else {
+			console.log("false");
+			socket.emit("wipe database");
+		}
+			
 	});
 
 	socket.on("create root node", function() {
 		createRootNode();
+		change_to_resetlink();
 		addCreateParentNodeLink();
 	});
 
@@ -29,23 +37,43 @@ $(function() {
 	});
 
 	socket.on('node data', function(node_data) {
-		console.log(node_data);
-		createRootNode();
-		addCreateParentNodeLink();
-		node_data.parent_node_data.forEach(function(data, index) {
-			createParentNode(data.id, data.name, data.max, data.min);	
-		});
-		node_data.child_node_data.forEach(function(data, index) {
-			console.log(data);
-			createChildNode(data.parent_node_id, data.random);	
-		});		
+		var parent_data = node_data.parent_node_data;
+		var child_data = node_data.parent_node_data; 
+		console.log(parent_data.length == 0);
+		if(parent_data.length != 0) {
+			change_to_resetlink();
+			createRootNode();
+			addCreateParentNodeLink();
+			append_parent_nodes(parent_data);
+			append_child_nodes(child_data);
+		}
+	
+	});
+
+	socket.on('wiped database', function() {
+		change_to_rootlink();
+		$('#tree_container').html("");
 	});
 });
 
 function createRootNode() {
+	console.log(this);
 	var nodeData = { id:"root_node", text:"Root node"}
 	var root = Handlebars.compile($('#node-template').html());
 	$('#tree_container').append(root(nodeData));
+}
+
+function change_to_rootlink() {
+	var $rrl = $("#root_reset_link");
+	$rrl.toggleClass("root_node_create");
+	$rrl.html("Create root");
+	$rrl.siblings().remove();
+}
+
+function change_to_resetlink() {
+	var $rrl = $("#root_reset_link");
+	$rrl.toggleClass("root_node_create");
+	$rrl.html("Reset");
 }
 
 function addCreateParentNodeLink() {
@@ -184,6 +212,18 @@ function checkMaxIsGreater(max, min, tips) {
 		return false;
 	}
 	return true;
+}
+
+function append_parent_nodes(parent_data) {
+	parent_data.forEach(function(data, index) {
+		createParentNode(data.id, data.name, data.max, data.min);	
+	});
+}
+
+function append_child_nodes(child_data) {
+	child_data.forEach(function(data, index) {
+		createChildNode(data.parent_node_id, data.random);	
+	});
 }
 
 

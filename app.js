@@ -106,6 +106,10 @@ io.sockets.on('connection', function(socket){
 		var random = Math.floor(Math.random() * (mx-mn)  + 1) + mn;
 		add_child_node(data.id, random);
 	});
+
+	socket.on("wipe database", function() {
+		wipe_database();
+	});
 });
 
 
@@ -207,6 +211,31 @@ function send_node_data(socket) {
 		      return console.error('error running query', err);
 		    }
 	    	socket.emit("node data", {"parent_node_data":parent_node_data.rows, "child_node_data": child_node_data.rows});
+	    });   
+
+	   });
+	});	
+}
+
+function wipe_database() {
+	pg.connect(conString, function(err, client, done) {
+	  if(err) {
+	    return console.error('error fetching client from pool', err);
+	  }
+	  var delete_parent_data = 'DELETE FROM parent_node';
+	  client.query(delete_parent_data, function(err, parent_node_data) {
+	    
+	    if(err) {
+	      return console.error('error running query', err);
+	    }
+
+	    var delete_child_data = 'DELETE FROM child_node';
+	    client.query(delete_child_data, function(err, child_node_data) {
+		    done();
+		    if(err) {
+		      return console.error('error running query', err);
+		    }
+	    	io.sockets.emit("wiped database");
 	    });   
 
 	   });
