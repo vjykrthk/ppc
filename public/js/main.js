@@ -1,5 +1,4 @@
 $(function() {
-	window.global_id = 1;
 	window.dialog_form = $('#dialog-form');
 	window.socket = io.connect();
 	
@@ -14,7 +13,7 @@ $(function() {
 	});
 
 	socket.on("create a parent node", function(data) {
-		 createParentNode(data.name, data.max, data.min);
+		 createParentNode(data.id, data.name, data.max, data.min);
 	});
 
 	socket.on("edit parent node", function(data) {
@@ -99,19 +98,19 @@ function createDialog(target) {
 }
 
 
-function createParentNode(name, max, min) {
+function createParentNode(id, name, max, min) {
 	var text = name + "(" + min + "-" + max + ")";
 	var template = Handlebars.compile($('#node-template').html());
 	
-	var parentNode = template({ id:global_id, text:text });
+	var parentNode = template({ id:id, text:text });
 
 	var rootNode = $('#tree_container > ul >li'); 
 	
 	rootNode.append(parentNode);
 
-	rootNode.find('#'+global_id).data({"name":name, "min":min, "max":max});
+	rootNode.find('#'+id).data({"name":name, "min":min, "max":max});
 
-	rootNode.find('#'+global_id).contextmenu({
+	rootNode.find('#'+id).contextmenu({
 		menu: [
 			{title:"Edit", cmd:"edit"},
 			{title:"Delete", cmd:"delete"},
@@ -121,7 +120,7 @@ function createParentNode(name, max, min) {
 			var $target = $(event.target);
 			switch(ui.cmd) {
 				case 'edit':
-					createDialog(el);
+					createDialog(event.target);
 					dialog_form.dialog("open");
 					break;
 				case 'delete':
@@ -134,8 +133,6 @@ function createParentNode(name, max, min) {
 			}
 		}
 	});
-
-	global_id+=1;
 }
 
 function editParentNode(id, name, max, min) {
