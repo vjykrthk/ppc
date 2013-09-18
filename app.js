@@ -42,7 +42,7 @@ pg.connect(conString, function(err, client, done) {
   if(err) {
     return console.error('error fetching client from pool', err);
   }
-  var table_parent_node = 'CREATE TABLE parent_node ( id SERIAL PRIMARY KEY NOT NULL, name TEXT NOT NULL, max INT NOT NULL, min INT NOT NULL)';
+  var table_parent_node = 'CREATE TABLE IF NOT EXISTS parent_node ( id SERIAL PRIMARY KEY NOT NULL, name TEXT NOT NULL, max INT NOT NULL, min INT NOT NULL)';
   client.query(table_parent_node, function(err, result) {
     done();
 
@@ -57,7 +57,7 @@ pg.connect(conString, function(err, client, done) {
   if(err) {
     return console.error('error fetching client from pool', err);
   }
-  var table_child_node = 'CREATE TABLE child_node ( random INT NOT NULL, parent_node_id INT NOT NULL)';
+  var table_child_node = 'CREATE TABLE IF NOT EXISTS child_node ( random INT NOT NULL, parent_node_id INT NOT NULL)';
   client.query(table_child_node, function(err, result) {
     done();
 
