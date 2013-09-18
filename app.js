@@ -39,8 +39,7 @@ server.listen(app.get('port'));
 console.log("Listening on port" + app.get('port'));
 
 pg.connect(conString, function(err, client, done) {
-  if(err) {
-  	console.log("process.env.DATABASE_URL", process.env.DATABASE_URL);
+  if(err) {  	
     return console.error('error fetching client from pool', err, process.env.DATABASE_URL, conString);
   }
   var table_parent_node = 'CREATE TABLE IF NOT EXISTS parent_node ( id SERIAL PRIMARY KEY NOT NULL, name TEXT NOT NULL, max INT NOT NULL, min INT NOT NULL)';
@@ -86,6 +85,7 @@ io.sockets.on('connection', function(socket){
 
 	socket.on("create a parent node", function(data) {
 		console.log("create a parent node", data);
+		console.log("process.env.DATABASE_URL", process.env.DATABASE_URL, conString);
 		insert_parent_node(data.name, data.max, data.min);
 	});
 
