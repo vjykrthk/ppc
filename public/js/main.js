@@ -25,7 +25,20 @@ $(function() {
 	});
 
 	socket.on('generate child', function(data) {
-		createChildNode(data.id, data.random)
+		createChildNode(data.id, data.random);
+	});
+
+	socket.on('node data', function(node_data) {
+		console.log(node_data);
+		createRootNode();
+		addCreateParentNodeLink();
+		node_data.parent_node_data.forEach(function(data, index) {
+			createParentNode(data.id, data.name, data.max, data.min);	
+		});
+		node_data.child_node_data.forEach(function(data, index) {
+			console.log(data);
+			createChildNode(data.parent_node_id, data.random);	
+		});		
 	});
 });
 

@@ -78,7 +78,7 @@ io.configure(function() {
 });
 
 io.sockets.on('connection', function(socket){
-
+	send_node_data(socket);
 	socket.on("create root node", function() {
 		io.sockets.emit("create root node");
 	});
@@ -184,6 +184,31 @@ function add_child_node(id, random) {
 	      return console.error('error running query', err);
 	    }
 	    io.sockets.emit("generate child", { "id": id, "random": random});
+	   });
+	});	
+}
+
+function send_node_data(socket) {
+	pg.connect(conString, function(err, client, done) {
+	  if(err) {
+	    return console.error('error fetching client from pool', err);
+	  }
+	  var select_parent_data = 'SELECT * FROM parent_node';
+	  client.query(select_parent_data, function(err, parent_node_data) {
+	    
+	    if(err) {
+	      return console.error('error running query', err);
+	    }
+
+	    var select_child_data = 'SELECT * FROM child_node';
+	    client.query(select_child_data, function(err, child_node_data) {
+		    done();
+		    if(err) {
+		      return console.error('error running query', err);
+		    }
+	    	socket.emit("node data", {"parent_node_data":parent_node_data.rows, "child_node_data": child_node_data.rows});
+	    });   
+
 	   });
 	});	
 }
