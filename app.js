@@ -12,7 +12,7 @@ var pg = require('pg');
 
 var conString = process.env.DATABASE_URL || "postgres://admin:@localhost/ppcc";
 
-
+console.log("process.env.DATABASE_URL", process.env.DATABASE_URL);
 var app = express();
 
 var server = http.createServer(app)
