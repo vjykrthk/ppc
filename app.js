@@ -12,7 +12,7 @@ var pg = require('pg');
 
 var conString = process.env.DATABASE_URL || "postgres://admin:@localhost/ppcc";
 
-console.log("process.env.DATABASE_URL", process.env.DATABASE_URL);
+
 var app = express();
 
 var server = http.createServer(app)
@@ -40,6 +40,7 @@ console.log("Listening on port" + app.get('port'));
 
 pg.connect(conString, function(err, client, done) {
   if(err) {
+  	console.log("process.env.DATABASE_URL", process.env.DATABASE_URL);
     return console.error('error fetching client from pool', err);
   }
   var table_parent_node = 'CREATE TABLE IF NOT EXISTS parent_node ( id SERIAL PRIMARY KEY NOT NULL, name TEXT NOT NULL, max INT NOT NULL, min INT NOT NULL)';

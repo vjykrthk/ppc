@@ -1,9 +1,0 @@
-create a parent node { name: 'ddd', max: '333', min: '222' }
-
-edit parent node { id: '1', name: 'ddde', max: '333', min: '222' }
-
-generate child { id: '1', max: '333', min: '222' }
-
-delete parent node { id: '1' }
-
-
