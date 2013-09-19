@@ -59,7 +59,7 @@ $(function() {
 
 function createRootNode() {
 	console.log(this);
-	var nodeData = { id:"root_node", text:"Root node"}
+	var nodeData = { id:"root_node", text:"Root node", class:"root_node"}
 	var root = Handlebars.compile($('#node-template').html());
 	$('#tree_container').append(root(nodeData));
 }
@@ -144,15 +144,17 @@ function createParentNode(id, name, max, min) {
 	var text = name + "(" + min + "-" + max + ")";
 	var template = Handlebars.compile($('#node-template').html());
 	
-	var parentNode = template({ id:id, text:text });
+	var parentNode = template({ id:id, text:text, class:"parent_node" });
 
 	var rootNode = $('#tree_container > ul >li'); 
 	
 	rootNode.append(parentNode);
 
-	rootNode.find('#'+id).data({"name":name, "min":min, "max":max});
+	parent_node = rootNode.find('#'+id).find('li'); 
 
-	rootNode.find('#'+id).contextmenu({
+	parent_node.data({"name":name, "min":min, "max":max});
+
+	parent_node.contextmenu({
 		menu: [
 			{title:"Edit", cmd:"edit"},
 			{title:"Delete", cmd:"delete"},
@@ -185,8 +187,9 @@ function editParentNode(id, name, max, min) {
 
 function createChildNode(id, random) {
 	var $target = $("#"+id);
+	var $child_node = $("<ul><li>" + random + " <span class=\"delete_child\">[x]</span></li></ul>");
 
-	$target.append("<ul><li>" + random + "</li></ul>");
+	$target.append($child_node);
 }
 
 
