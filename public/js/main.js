@@ -38,13 +38,14 @@ $(function() {
 
 	socket.on('node data', function(node_data) {
 		var parent_data = node_data.parent_node_data;
-		var child_data = node_data.parent_node_data; 
+		var child_data = node_data.child_node_data; 
 		console.log(parent_data.length == 0);
 		if(parent_data.length != 0) {
 			change_to_resetlink();
 			createRootNode();
 			addCreateParentNodeLink();
 			append_parent_nodes(parent_data);
+			console.log(child_data);
 			append_child_nodes(child_data);
 		}
 	

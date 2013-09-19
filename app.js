@@ -8,9 +8,9 @@ var routes = require('./routes');
 var user = require('./routes/user');
 var http = require('http');
 var path = require('path');
-var pg = require('pg');
+// var pg = require('pg');
 
-var conString = process.env.DATABASE_URL || "postgres://admin:@localhost/ppcc";
+// var conString = process.env.DATABASE_URL || "postgres://admin:@localhost/ppcc";
 
 
 var app = express();
@@ -38,35 +38,15 @@ server.listen(app.get('port'));
 
 console.log("Listening on port" + app.get('port'));
 
-pg.connect(conString, function(err, client, done) {
-  if(err) {  	
-    return console.error('error fetching client from pool', err, process.env.DATABASE_URL, conString);
-  }
-  var table_parent_node = 'CREATE TABLE IF NOT EXISTS parent_node ( id SERIAL PRIMARY KEY NOT NULL, name TEXT NOT NULL, max INT NOT NULL, min INT NOT NULL)';
-  client.query(table_parent_node, function(err, result) {
-    done();
+var db = require('./db/ppcc_db');
 
-    if(err) {
-      return console.error('error running query', err);
-    }
-    console.log(result);
-   });
-});
+db.init(io);
 
-pg.connect(conString, function(err, client, done) {
-  if(err) {
-    return console.error('error fetching client from pool', err);
-  }
-  var table_child_node = 'CREATE TABLE IF NOT EXISTS child_node ( random INT NOT NULL, parent_node_id INT NOT NULL)';
-  client.query(table_child_node, function(err, result) {
-    done();
+var ppcc_db = db.ppcc_db;
 
-    if(err) {
-      return console.error('error running query', err);
-    }
-    console.log(result);
-   });
-});
+ppcc_db.create_parent_table();
+ppcc_db.create_child_table();
+
 
 app.get('/', function(req, res) {
 	res.sendfile(__dirname + "/index.html");
@@ -77,167 +57,38 @@ io.configure(function() {
 	io.set("polling duration", 10);
 });
 
+
 io.sockets.on('connection', function(socket){
-	send_node_data(socket);
+	ppcc_db.send_node_data(socket);
 	socket.on("create root node", function() {
 		io.sockets.emit("create root node");
 	});
 
 	socket.on("create a parent node", function(data) {
 		console.log("create a parent node", data);
-		console.log("process.env.DATABASE_URL", process.env.DATABASE_URL, conString);
-		insert_parent_node(data.name, data.max, data.min);
+		ppcc_db.insert_parent_node(data.name, data.max, data.min);
 	});
 
 	socket.on("edit parent node", function(data) {
 		console.log("edit parent node", data);
-		update_parent_node(data.id, data.name, data.max, data.min);		
+		ppcc_db.update_parent_node(data.id, data.name, data.max, data.min);		
 	});
 
 	socket.on("delete parent node", function(data) {
 		console.log("delete parent node", data);
-		delete_parent_node(data.id);
+		ppcc_db.delete_parent_node(data.id);
 	});
 
 	socket.on("generate child", function(data) {
 		console.log("generate child", data);
-		var mx = parseInt(data.max);
-		var mn = parseInt(data.min);
-		var random = Math.floor(Math.random() * (mx-mn)  + 1) + mn;
-		add_child_node(data.id, random);
+		ppcc_db.add_child_node(data.id, get_random_number(parseInt(data.max), parseInt(data.min)));
 	});
 
 	socket.on("wipe database", function() {
-		wipe_database();
+		ppcc_db.wipe_database();
 	});
 });
 
-
-function insert_parent_node(name, max, min) {
-	pg.connect(conString, function(err, client, done) {
-	  if(err) {
-	    return console.error('error fetching client from pool', err);
-	  }
-	  var insert_parent_node = 'INSERT INTO parent_node(name, max, min) VALUES($1, $2, $3) RETURNING id';
-	  client.query(insert_parent_node, [name, max, min], function(err, result) {
-	    done();
-
-	    if(err) {
-	      return console.error('error running query', err);
-	    }
-
-	    var data = { "id":result.rows[0].id, "name":name, "max":max, "min":min };
-	    io.sockets.emit("create a parent node", data);
-	   });
-	});	
-}
-
-function update_parent_node(id, name, max, min) {
-	pg.connect(conString, function(err, client, done) {
-	  if(err) {
-	    return console.error('error fetching client from pool', err);
-	  }
-	  var update_parent_node = 'UPDATE parent_node SET name = $1, max = $2, min = $3 WHERE id = $4';
-	  client.query(update_parent_node, [name, max, min, id], function(err, result) {
-	    done();
-
-	    if(err) {
-	      return console.error('error running query', err);
-	    }
-
-	    var data = { "id":id, "name":name, "max":max, "min":min };
-	    io.sockets.emit("edit parent node", data);;
-	   });
-	});		
-}
-
-function delete_parent_node(id) {
-	pg.connect(conString, function(err, client, done) {
-	  if(err) {
-	    return console.error('error fetching client from pool', err);
-	  }
-	  var delete_parent_node = 'DELETE FROM parent_node WHERE id = $1';
-	  client.query(delete_parent_node, [id], function(err, result) {
-	    
-	    if(err) {
-	      return console.error('error running query', err);
-	    }
-	    var delete_child_node = 'DELETE FROM child_node WHERE parent_node_id = $1'
-	    client.query(delete_child_node, [id], function(err, result) {
-	    	done();
-	    	if(err) {
-	     		return console.error('error running query', err);
-	    	}
-	    	io.sockets.emit("delete parent node", { "id":id });
-	    });	    
-	   });
-	});	
-}
-
-
-function add_child_node(id, random) {
-	pg.connect(conString, function(err, client, done) {
-	  if(err) {
-	    return console.error('error fetching client from pool', err);
-	  }
-	  var insert_child_node = 'INSERT INTO child_node(random, parent_node_id) VALUES($1, $2)';
-	  client.query(insert_child_node, [random, id], function(err, result) {
-	    done();
-
-	    if(err) {
-	      return console.error('error running query', err);
-	    }
-	    io.sockets.emit("generate child", { "id": id, "random": random});
-	   });
-	});	
-}
-
-function send_node_data(socket) {
-	pg.connect(conString, function(err, client, done) {
-	  if(err) {
-	    return console.error('error fetching client from pool', err);
-	  }
-	  var select_parent_data = 'SELECT * FROM parent_node';
-	  client.query(select_parent_data, function(err, parent_node_data) {
-	    
-	    if(err) {
-	      return console.error('error running query', err);
-	    }
-
-	    var select_child_data = 'SELECT * FROM child_node';
-	    client.query(select_child_data, function(err, child_node_data) {
-		    done();
-		    if(err) {
-		      return console.error('error running query', err);
-		    }
-	    	socket.emit("node data", {"parent_node_data":parent_node_data.rows, "child_node_data": child_node_data.rows});
-	    });   
-
-	   });
-	});	
-}
-
-function wipe_database() {
-	pg.connect(conString, function(err, client, done) {
-	  if(err) {
-	    return console.error('error fetching client from pool', err);
-	  }
-	  var delete_parent_data = 'DELETE FROM parent_node';
-	  client.query(delete_parent_data, function(err, parent_node_data) {
-	    
-	    if(err) {
-	      return console.error('error running query', err);
-	    }
-
-	    var delete_child_data = 'DELETE FROM child_node';
-	    client.query(delete_child_data, function(err, child_node_data) {
-		    done();
-		    if(err) {
-		      return console.error('error running query', err);
-		    }
-	    	io.sockets.emit("wiped database");
-	    });   
-
-	   });
-	});	
+function get_random_number(mx, mn) {
+	return Math.floor(Math.random() * (mx-mn)  + 1) + mn;
 }
