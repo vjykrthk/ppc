@@ -5,42 +5,12 @@ var pg = require('pg');
  };
 
 PPCC_DB.prototype = {
+
+	// CREATE TABLE IF NOT EXISTS parent_node ( id SERIAL NOT NULL, name TEXT NOT NULL, max INT NOT NULL, min INT NOT NULL);
+
+	// CREATE TABLE IF NOT EXISTS child_node ( id SERIAL NOT NULL, random INT NOT NULL, parent_node_id INT NOT NULL);
 	
 	conString: process.env.DATABASE_URL || "postgres://admin:@localhost/ppcc",
-
-	create_parent_table: function() {
-		pg.connect(this.conString, function(err, client, done) {
-		  if(err) {
-		    return console.error('error fetching client from pool', err);
-		  }
-		  var table_child_node = 'CREATE TABLE IF NOT EXISTS child_node ( random INT NOT NULL, parent_node_id INT NOT NULL)';
-		  client.query(table_child_node, function(err, result) {
-		    done();
-
-		    if(err) {
-		      return console.error('error running query', err);
-		    }
-		    console.log(result);
-		   });
-		});
-	}, 
-
-	create_child_table: function() {
-		pg.connect(this.conString, function(err, client, done) {
-		  if(err) {
-		    return console.error('error fetching client from pool', err);
-		  }
-		  var table_child_node = 'CREATE TABLE IF NOT EXISTS child_node ( id SERIAL NOT NULL, random INT NOT NULL, parent_node_id INT NOT NULL)';
-		  client.query(table_child_node, function(err, result) {
-		    done();
-
-		    if(err) {
-		      return console.error('error running query', err);
-		    }
-		    console.log(result);
-		   });
-		});
-	},
 
 	insert_parent_node: function (name, max, min) {
 		var io = this.io;

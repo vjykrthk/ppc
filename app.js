@@ -42,10 +42,6 @@ db.init(io);
 
 var ppcc_db = db.ppcc_db;
 
-ppcc_db.create_parent_table();
-ppcc_db.create_child_table();
-
-
 app.get('/', function(req, res) {
 	res.sendfile(__dirname + "/index.html");
 });
