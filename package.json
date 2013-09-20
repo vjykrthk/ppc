@@ -8,15 +8,16 @@
   "dependencies": {
     "express": "3.3.8",
     "jade": "*",
-    "pg":"2.6.2",
-    "socket.io":"0.9.16"
+    "pg": "2.6.2",
+    "socket.io": "0.9.16",
+    "node-persist": "0.0.1"
   },
   "engines": {
     "node": "0.10.17",
     "npm": "1.3.8"
   },
-  "respository":{
+  "respository": {
     "type": "git",
-    "url":"https://github.com/vjykrthk/ppc.git"
+    "url": "https://github.com/vjykrthk/ppc.git"
   }
 }

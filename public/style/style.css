@@ -6,3 +6,26 @@ body {
 a {
   color: #00B7FF;
 }
+
+#dialog-form {
+			display:none;
+		}
+
+label, input { 
+	display:block;
+}
+label {
+	margin-top: 15px;
+}
+
+.delete_child {
+	color: RED;
+	cursor: pointer;
+}
+.delete_child:hover {
+	font-weight: bold;
+}
+.parent_node > li:hover {
+	font-weight: bold;
+	cursor: pointer;
+}

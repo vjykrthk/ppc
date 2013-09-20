@@ -10,24 +10,16 @@
 	<script type="text/javascript" src="/js/main.js"></script>
 
 	<link rel="stylesheet" type="text/css" href="/style/jquery-ui-1.10.3.custom.min.css">
-
-	<script type="template/handlebars" id="node-template">
-		<ul id={{id}}>
+	<link rel="stylesheet" type="text/css" href="/style/style.css">
+	<script type="template/handlebars" id="parent-node-template">
+		<ul class="parent_node" id={{id}}>
 			<li>{{text}}</li>
+			<ul id="child"></ul>
 		</ul>
 	</script>
-	<style>
-		#dialog-form {
-			display:none;
-		}
-
-		label, input { 
-			display:block;
-		}
-		label {
-			margin-top: 15px;
-		}
-	</style>
+	<script type="template/handlebars" id="child-node-template">
+		<li id="child_node_{{child_node_id}}">{{random}} <span class="delete_child">[x]</span></li>
+	</script>
 </head>
 <body>
 	<div id="container">

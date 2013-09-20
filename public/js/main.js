@@ -33,17 +33,28 @@ $(function() {
 	});
 
 	socket.on('generate child', function(data) {
-		createChildNode(data.id, data.random);
+		console.log(data);
+		createChildNode(data.child_node_id, data.parent_node_id, data.random);
 	});
+
+	socket.on('delete child node', function(data) {
+		console.log("server delete child node", data);
+		deleteChildNode(data.child_node_id);
+	});	
 
 	socket.on('node data', function(node_data) {
 		var parent_data = node_data.parent_node_data;
 		var child_data = node_data.child_node_data; 
 		console.log(parent_data.length == 0);
-		if(parent_data.length != 0) {
+		console.log("node data: root_node", node_data, node_data.root_node);
+		
+		if(node_data.root_node && node_data.root_node != undefined) {
 			change_to_resetlink();
 			createRootNode();
 			addCreateParentNodeLink();
+		}
+
+		if(parent_data.length != 0) {
 			append_parent_nodes(parent_data);
 			console.log(child_data);
 			append_child_nodes(child_data);
@@ -59,9 +70,8 @@ $(function() {
 
 function createRootNode() {
 	console.log(this);
-	var nodeData = { id:"root_node", text:"Root node"}
-	var root = Handlebars.compile($('#node-template').html());
-	$('#tree_container').append(root(nodeData));
+	var root_node = $("<ul id=\"root_node\"><li>Root node</li></ul>");
+	$('#tree_container').append(root_node);
 }
 
 function change_to_rootlink() {
@@ -108,18 +118,24 @@ function createDialog(target) {
       buttons: [{
       		text:button_text,
       		click: function() {
-	        		var valid = true
-	        		valid = checkName(name.val(), tips) && valid;
-	        		valid = valid && checkNumeric(max.val(), tips);
-	        		valid = valid && checkNumeric(min.val(), tips);
-	        		valid = valid && checkMaxIsGreater(max.val(), min.val(), tips);
-	       		
-		       		if(valid && target == undefined) {
-		       			socket.emit("create a parent node", {name:name.val(), max:max.val(), min:min.val()});
-		       		} else {
-		       			socket.emit("edit parent node", {id:$target.attr('id'), name:name.val(), max:max.val(), min:min.val()});
-		       		}
-	       			$(this).dialog("close");
+      				var nameVal = name.val(), 
+      				maxVal = parseInt(max.val()),
+      				minVal = parseInt(min.val()),
+	        		valid = true;
+	        		valid = checkName(nameVal, tips) && valid;
+	        		valid = valid && checkNumeric(maxVal, tips);
+	        		valid = valid && checkNumeric(minVal, tips);
+	        		valid = valid && checkMaxIsGreater(maxVal, minVal, tips);
+
+
+	        		if(valid) {
+						if(target == undefined) {
+		       				socket.emit("create a parent node", {name:name.val(), max:max.val(), min:min.val()});
+		       			} else {
+		       				socket.emit("edit parent node", {id:$target.attr('id'), name:name.val(), max:max.val(), min:min.val()});
+		       			}	        			
+	        			$(this).dialog("close");
+	        		}	       			
        			}
       		},
 
@@ -142,7 +158,7 @@ function createDialog(target) {
 
 function createParentNode(id, name, max, min) {
 	var text = name + "(" + min + "-" + max + ")";
-	var template = Handlebars.compile($('#node-template').html());
+	var template = Handlebars.compile($('#parent-node-template').html());
 	
 	var parentNode = template({ id:id, text:text });
 
@@ -150,9 +166,11 @@ function createParentNode(id, name, max, min) {
 	
 	rootNode.append(parentNode);
 
-	rootNode.find('#'+id).data({"name":name, "min":min, "max":max});
+	parentNode = rootNode.find('#'+id); 
 
-	rootNode.find('#'+id).contextmenu({
+	parentNode.data({"name":name, "min":min, "max":max});
+
+	parentNode.contextmenu({
 		menu: [
 			{title:"Edit", cmd:"edit"},
 			{title:"Delete", cmd:"delete"},
@@ -169,7 +187,7 @@ function createParentNode(id, name, max, min) {
 					socket.emit("delete parent node", { id:$target.attr('id') });
 					break;
 				case 'generate':
-					var data = { id:$target.attr('id'), max:$target.data("max"), min:$target.data("min") };
+					var data = { parent_node_id:$target.attr('id'), max:$target.data("max"), min:$target.data("min") };
 					socket.emit("generate child", data )
 					break;
 			}
@@ -183,10 +201,26 @@ function editParentNode(id, name, max, min) {
 	parentNode.find('li').first().html(name + "(" + min + "-" + max + ")");
 }
 
-function createChildNode(id, random) {
-	var $target = $("#"+id);
+function createChildNode(child_node_id, parent_node_id, random) {
+	var $target = $("#"+parent_node_id);
+	console.log("child_node_id, parent_node_id, random", child_node_id, parent_node_id, random);
 
-	$target.append("<ul><li>" + random + "</li></ul>");
+	var template = Handlebars.compile($('#child-node-template').html());
+	var child_node = template({ child_node_id:child_node_id, random:random });
+	
+	$target.find('#child').append(child_node);
+
+	$childnode = $target.find('#child_node_'+child_node_id).find('span');
+	$childnode.data("child_id", child_node_id);
+	$childnode.on('click', function(evt) {
+		evt.preventDefault();
+		console.log('createChildNode', $(this).data('child_id'));
+		socket.emit("delete child node", { child_id: $(this).data('child_id')});
+	})
+}
+
+function deleteChildNode(child_node_id) {
+	$('#child_node_'+child_node_id).remove();
 }
 
 
@@ -208,6 +242,7 @@ function checkNumeric(n, tips) {
 }
 
 function checkMaxIsGreater(max, min, tips) {
+	console.log("max, min", max, min, max < min);
 	if(max < min) {
 		tips.text("Max should be greater than min");
 		return false;
@@ -223,7 +258,7 @@ function append_parent_nodes(parent_data) {
 
 function append_child_nodes(child_data) {
 	child_data.forEach(function(data, index) {
-		createChildNode(data.parent_node_id, data.random);	
+		createChildNode(data.id, data.parent_node_id, data.random);	
 	});
 }
 

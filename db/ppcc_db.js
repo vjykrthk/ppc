@@ -30,7 +30,7 @@ PPCC_DB.prototype = {
 		  if(err) {
 		    return console.error('error fetching client from pool', err);
 		  }
-		  var table_child_node = 'CREATE TABLE IF NOT EXISTS child_node ( random INT NOT NULL, parent_node_id INT NOT NULL)';
+		  var table_child_node = 'CREATE TABLE IF NOT EXISTS child_node ( id SERIAL NOT NULL, random INT NOT NULL, parent_node_id INT NOT NULL)';
 		  client.query(table_child_node, function(err, result) {
 		    done();
 
@@ -106,25 +106,43 @@ PPCC_DB.prototype = {
 		});	
 	},
 
-	add_child_node: function(id, random) {
+	add_child_node: function(parent_node_id, random) {
 		var io = this.io;
 		pg.connect(this.conString, function(err, client, done) {
 		  if(err) {
 		    return console.error('error fetching client from pool', err);
 		  }
-		  var insert_child_node = 'INSERT INTO child_node(random, parent_node_id) VALUES($1, $2)';
-		  client.query(insert_child_node, [random, id], function(err, result) {
+		  var insert_child_node = 'INSERT INTO child_node(random, parent_node_id) VALUES($1, $2) RETURNING ID';
+		  client.query(insert_child_node, [random, parent_node_id], function(err, result) {
 		    done();
 
 		    if(err) {
 		      return console.error('error running query', err);
 		    }
-		    io.sockets.emit("generate child", { "id": id, "random": random});
+		    io.sockets.emit("generate child", { "parent_node_id": parent_node_id, "random": random, child_node_id:result.rows[0].id});
 		   });
 		});	
 	},
 
-	send_node_data: function(socket) {
+	delete_child_node: function(child_node_id) {
+		var io = this.io;
+		pg.connect(this.conString, function(err, client, done) {
+		  if(err) {
+		    return console.error('error fetching client from pool', err);
+		  }
+		  var delete_child_node = 'DELETE FROM child_node WHERE ID = $1';
+		  client.query(delete_child_node, [child_node_id], function(err, result) {
+		    done();
+
+		    if(err) {
+		      return console.error('error running query', err);
+		    }
+		    io.sockets.emit("delete child node", { "child_node_id": child_node_id});
+		   });
+		});	
+	},
+
+	send_node_data: function(socket, root_node) {
 		var io = this.io;
 		pg.connect(this.conString, function(err, client, done) {
 		  if(err) {
@@ -143,8 +161,8 @@ PPCC_DB.prototype = {
 			    if(err) {
 			      return console.error('error running query', err);
 			    }
-			    console.log(child_node_data.rows);
-		    	socket.emit("node data", {"parent_node_data":parent_node_data.rows, "child_node_data": child_node_data.rows});
+			    console.log("root_node", root_node);
+			    socket.emit("node data", {"root_node": root_node, "parent_node_data":parent_node_data.rows, "child_node_data": child_node_data.rows });
 		    });   
 
 		   });
