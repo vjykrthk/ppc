@@ -243,7 +243,7 @@ function checkNumeric(n, tips) {
 
 function checkMaxIsGreater(max, min, tips) {
 	console.log("max, min", max, min, max < min);
-	if(max < min) {
+	if(max <= min) {
 		tips.text("Max should be greater than min");
 		return false;
 	}
