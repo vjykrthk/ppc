@@ -88,7 +88,7 @@ function change_to_resetlink() {
 }
 
 function addCreateParentNodeLink() {
-	var parent_link = $("<a>", {href:"#", text:"Create a parent node"});
+	var parent_link = $("<button>", {text:"Create a parent node"});
 	$('#links_container').append(parent_link);
 	createDialog();
 	parent_link.click( function(evt) {
