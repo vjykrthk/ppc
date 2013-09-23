@@ -74,9 +74,13 @@ io.sockets.on('connection', function(socket){
 		ppcc_db.delete_parent_node(data.id);
 	});
 
-	socket.on("generate child", function(data) {
-		console.log("generate child", data);
-		ppcc_db.add_child_node(data.parent_node_id, get_random_number(parseInt(data.max), parseInt(data.min)));
+	socket.on("generate children", function(data) {
+		console.log("generate children", data);
+		var randomList = new Array();
+		while(randomList.length < data.number_of_children) {
+			 randomList.push(get_random_number(parseInt(data.max), parseInt(data.min)));	
+		}
+		ppcc_db.add_child_nodes(data.parent_node_id, randomList);
 	});
 
 	socket.on("delete child node", function(data) {

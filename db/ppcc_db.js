@@ -76,24 +76,44 @@ PPCC_DB.prototype = {
 		});	
 	},
 
-	add_child_node: function(parent_node_id, random) {
+	add_child_nodes: function(parent_node_id, random_list) {
 		var io = this.io;
 		pg.connect(this.conString, function(err, client, done) {
 		  if(err) {
 		    return console.error('error fetching client from pool', err);
 		  }
-		  var insert_child_node = 'INSERT INTO child_node(random, parent_node_id) VALUES($1, $2) RETURNING ID';
-		  client.query(insert_child_node, [random, parent_node_id], function(err, result) {
-		    done();
-
+		  
+		  delete_child_nodes = 'DELETE FROM child_node WHERE parent_node_id = $1';	  
+		  client.query(delete_child_nodes, [parent_node_id], function(err, result) {
+		    
 		    if(err) {
 		      return console.error('error running query', err);
 		    }
-		    io.sockets.emit("generate child", { "parent_node_id": parent_node_id, "random": random, child_node_id:result.rows[0].id});
+
+			var insert_child_node = 'INSERT INTO child_node(random, parent_node_id) VALUES';
+			var i=0;
+			while(i<random_list.length-1) {
+				insert_child_node += '(' + random_list[i] + ',  ' + parent_node_id + '),';
+				i++;
+			}
+		    insert_child_node += '(' + random_list[i] + ',  ' + parent_node_id + ') RETURNING id, random, parent_node_id';
+
+			client.query(insert_child_node, function(err, data) {
+				done();
+
+				if(err) {
+					return console.error('error running query', err);
+				}
+
+				console.log("add_children_nodes", data.rows);
+
+				io.sockets.emit("generate children", data.rows);
+			});
 		   });
 		});	
 	},
 
+	
 	delete_child_node: function(child_node_id) {
 		var io = this.io;
 		pg.connect(this.conString, function(err, client, done) {

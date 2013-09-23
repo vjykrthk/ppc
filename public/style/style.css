@@ -7,9 +7,9 @@ a {
   color: #00B7FF;
 }
 
-#dialog-form {
-			display:none;
-		}
+#dialog-form, #dialog-generate {
+	display:none;
+}
 
 label, input { 
 	display:block;

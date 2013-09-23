@@ -1,5 +1,5 @@
 $(function() {
-	window.dialog_form = $('#dialog-form');
+	
 	window.socket = io.connect();
 	
 	$("#root_reset_link").on('click', function(evt) {
@@ -32,9 +32,15 @@ $(function() {
 		$("#"+data.id).remove();
 	});
 
-	socket.on('generate child', function(data) {
-		console.log(data);
-		createChildNode(data.child_node_id, data.parent_node_id, data.random);
+	socket.on('generate children', function(data) {
+		console.log($('#'+data[0].parent_node_id).find(".child"));
+		var parent_node = $('#'+data[0].parent_node_id).find('.child');
+		parent_node.html("");
+		data.forEach(function(d) {
+			console.log('generate children', d);
+			createChildNode(d.child_node_id, d.parent_node_id, d.random);
+		});
+		
 	});
 
 	socket.on('delete child node', function(data) {
@@ -90,10 +96,9 @@ function change_to_resetlink() {
 function addCreateParentNodeLink() {
 	var parent_link = $("<button>", {text:"Create a parent node"});
 	$('#links_container').append(parent_link);
-	createDialog();
 	parent_link.click( function(evt) {
 		evt.preventDefault();
-		dialog_form.dialog("open");
+		createDialog();
 	});
 }
 
@@ -102,19 +107,24 @@ function createDialog(target) {
 	max = $('#max'), 
 	min = $('#min'), 
 	tips = $('.validateTips');
-	$target = $(target);
+	$target = $(target),
+	$dialog_form = $("#dialog-form");
+	
 	var button_text = "Create parent node";
+
+
 	if(target != undefined) {
 		name.val($target.data('name'));
 		max.val($target.data('max'));
 		min.val($target.data('min'));
 		button_text = "Edit parent node"
-	}	
+	}
 
-	$( "#dialog-form" ).dialog({
+	$dialog_form.dialog({
       autoOpen: false,
       width: 400,
       modal: true,
+      title: button_text,
       buttons: [{
       		text:button_text,
       		click: function() {
@@ -153,6 +163,33 @@ function createDialog(target) {
         min.val("");
       }
     });
+
+	$dialog_form.dialog("open");
+}
+
+function createGeneratorDialog(data) {
+	var $children_generator = $('#children_generator'),
+	$dialog_generator = $('#dialog-generate');
+	
+	$dialog_generator.dialog({
+		autoOpen: false,
+		modal: true,
+		buttons: {
+			"Generate" : function() {
+				data.number_of_children = $children_generator.val();
+				console.log("dialog_generator", data);
+				socket.emit("generate children", data );
+				$dialog_generator.dialog("close");
+			},
+			"Cancel" : function() {
+				$dialog_generator.dialog("close");
+			}
+		}
+
+	});	
+
+	$dialog_generator.dialog("open");
+
 }
 
 
@@ -181,14 +218,13 @@ function createParentNode(id, name, max, min) {
 			switch(ui.cmd) {
 				case 'edit':
 					createDialog(event.target);
-					dialog_form.dialog("open");
 					break;
 				case 'delete':
 					socket.emit("delete parent node", { id:$target.attr('id') });
 					break;
 				case 'generate':
 					var data = { parent_node_id:$target.attr('id'), max:$target.data("max"), min:$target.data("min") };
-					socket.emit("generate child", data )
+					createGeneratorDialog(data);
 					break;
 			}
 		}
@@ -208,7 +244,7 @@ function createChildNode(child_node_id, parent_node_id, random) {
 	var template = Handlebars.compile($('#child-node-template').html());
 	var child_node = template({ child_node_id:child_node_id, random:random });
 	
-	$target.find('#child').append(child_node);
+	$target.find('.child').append(child_node);
 
 	$childnode = $target.find('#child_node_'+child_node_id).find('span');
 	$childnode.data("child_id", child_node_id);
