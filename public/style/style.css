@@ -24,7 +24,7 @@ div#tree_container {
 }
 
 #root_node li img {
-	margin:0;
+	margin: -5px 0 0 0;
 	padding: 0px 3px 0px 0px;
 }
 
@@ -46,7 +46,7 @@ label {
 .delete_child:hover {
 	font-weight: bold;
 }
-.parent_node > li > span.parent_title:hover {
+span.parent_title:hover, span.root_title:hover {
 	font-weight: bold;
 	cursor: pointer;
 }

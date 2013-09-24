@@ -85,6 +85,10 @@ function cleanWhitespace(element) {
 function createRootNode() {
 	var root_node_template = Handlebars.compile($("#root-node-template").html());
 	$('#tree_container').append(root_node_template());
+
+	$('#tree_container').find('span.root_title').click(function() {
+		$(this).parent().find('ul#parent_node_list').slideToggle();
+	});
 }
 
 function change_to_rootlink() {
@@ -214,17 +218,22 @@ function createParentNode(id, name, max, min) {
 
 	parentNode.data({"name":name, "min":min, "max":max});
 
-	parentNode.contextmenu({
+	parentNode.find('span.parent_title').click(function() {
+		$(this).parent().find('ul.child').slideToggle();
+	});
+
+	parentNode.find('span.parent_title').contextmenu({
 		menu: [
 			{title:"Edit", cmd:"edit"},
 			{title:"Delete", cmd:"delete"},
 			{title:"Generate", cmd:"generate"}
 		],
 		select: function(event, ui) {
-			var $target = $(event.target);
+			console.log("event.target", event.target);
+			var $target = $(parentNode);
 			switch(ui.cmd) {
 				case 'edit':
-					createDialog(event.target);
+					createDialog(parentNode);
 					break;
 				case 'delete':
 					socket.emit("delete parent node", { id:$target.attr('id') });
