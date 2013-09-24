@@ -6,6 +6,27 @@ body {
 a {
   color: #00B7FF;
 }
+div#tree_container {
+	margin-top: 15px;
+}
+
+#root_node ul {
+	margin: 0px;
+}
+#root_node li {
+	background: url(images/treeview-default-line.gif) 0 0 no-repeat;
+	list-style:none;
+	margin: 0;
+	padding: 3px 0px 3px 16px;
+}
+#root_node li:last-child {
+	background-position: 0 -1766px;
+}
+
+#root_node li img {
+	margin:0;
+	padding: 0px 3px 0px 0px;
+}
 
 #dialog-form, #dialog-generate {
 	display:none;
@@ -25,7 +46,7 @@ label {
 .delete_child:hover {
 	font-weight: bold;
 }
-.parent_node > li:hover {
+.parent_node > li > span.parent_title:hover {
 	font-weight: bold;
 	cursor: pointer;
 }

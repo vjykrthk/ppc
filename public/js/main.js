@@ -33,14 +33,13 @@ $(function() {
 	});
 
 	socket.on('generate children', function(data) {
-		console.log($('#'+data[0].parent_node_id).find(".child"));
 		var parent_node = $('#'+data[0].parent_node_id).find('.child');
+						
 		parent_node.html("");
+
 		data.forEach(function(d) {
-			console.log('generate children', d);
 			createChildNode(d.child_node_id, d.parent_node_id, d.random);
 		});
-		
 	});
 
 	socket.on('delete child node', function(data) {
@@ -51,8 +50,6 @@ $(function() {
 	socket.on('node data', function(node_data) {
 		var parent_data = node_data.parent_node_data;
 		var child_data = node_data.child_node_data; 
-		console.log(parent_data.length == 0);
-		console.log("node data: root_node", node_data, node_data.root_node);
 		
 		if(node_data.root_node && node_data.root_node != undefined) {
 			change_to_resetlink();
@@ -62,7 +59,6 @@ $(function() {
 
 		if(parent_data.length != 0) {
 			append_parent_nodes(parent_data);
-			console.log(child_data);
 			append_child_nodes(child_data);
 		}
 	
@@ -74,10 +70,21 @@ $(function() {
 	});
 });
 
+function cleanWhitespace(element) {
+ // element = $(element);
+ // console.log(element.childNodes);
+ for (var i = 0; i < element.childNodes.length; i++) {
+   var node = element.childNodes[i];
+   if (node.nodeType == 3 && !/\S/.test(node.nodeValue))
+    $(element).remove(node);
+ }
+
+ console.log("cleanWhitespace", element.childNodes);
+}
+
 function createRootNode() {
-	console.log(this);
-	var root_node = $("<ul id=\"root_node\"><li>Root node</li></ul>");
-	$('#tree_container').append(root_node);
+	var root_node_template = Handlebars.compile($("#root-node-template").html());
+	$('#tree_container').append(root_node_template());
 }
 
 function change_to_rootlink() {
@@ -199,8 +206,8 @@ function createParentNode(id, name, max, min) {
 	
 	var parentNode = template({ id:id, text:text });
 
-	var rootNode = $('#tree_container > ul >li'); 
-	
+	var rootNode = $('#tree_container ul#parent_node_list'); 
+
 	rootNode.append(parentNode);
 
 	parentNode = rootNode.find('#'+id); 
@@ -233,14 +240,13 @@ function createParentNode(id, name, max, min) {
 
 function editParentNode(id, name, max, min) {
 	var parentNode = $("#"+id);
+	console.log("editParentNode", parentNode);
 	parentNode.data({"name":name, "max":max, "min":min});
-	parentNode.find('li').first().html(name + "(" + min + "-" + max + ")");
+	parentNode.find('span.parent_title').html(name + "(" + min + "-" + max + ")");
 }
 
 function createChildNode(child_node_id, parent_node_id, random) {
 	var $target = $("#"+parent_node_id);
-	console.log("child_node_id, parent_node_id, random", child_node_id, parent_node_id, random);
-
 	var template = Handlebars.compile($('#child-node-template').html());
 	var child_node = template({ child_node_id:child_node_id, random:random });
 	

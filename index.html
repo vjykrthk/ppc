@@ -11,14 +11,22 @@
 
 	<link rel="stylesheet" type="text/css" href="/style/jquery-ui-1.10.3.custom.min.css">
 	<link rel="stylesheet" type="text/css" href="/style/style.css">
+	<script type="template/handlebars" id="root-node-template">
+		<div id="root_node">
+			<img src="/style/images/folder.gif"/>
+			<span class="root_title">Root node</span>
+			<ul id="parent_node_list"></ul>
+		</div>
+	</script>
 	<script type="template/handlebars" id="parent-node-template">
-		<ul class="parent_node" id={{id}}>
-			<li>{{text}}</li>
-			<ul class="child"></ul>
-		</ul>
+			<li class="parent_node" id={{id}}>
+				<img src="/style/images/folder.gif"/>
+				<span class="parent_title">{{text}}</span>
+				<ul class="child"></ul>
+			</li>		
 	</script>
 	<script type="template/handlebars" id="child-node-template">
-		<li id="child_node_{{child_node_id}}">{{random}} <span class="delete_child">[x]</span></li>
+		<li id="child_node_{{child_node_id}}"><img src="/style/images/folder.gif"/>{{random}} <span class="delete_child">[x]</span></li>
 	</script>
 </head>
 <body>
