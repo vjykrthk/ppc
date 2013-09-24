@@ -70,18 +70,6 @@ $(function() {
 	});
 });
 
-function cleanWhitespace(element) {
- // element = $(element);
- // console.log(element.childNodes);
- for (var i = 0; i < element.childNodes.length; i++) {
-   var node = element.childNodes[i];
-   if (node.nodeType == 3 && !/\S/.test(node.nodeValue))
-    $(element).remove(node);
- }
-
- console.log("cleanWhitespace", element.childNodes);
-}
-
 function createRootNode() {
 	var root_node_template = Handlebars.compile($("#root-node-template").html());
 	$('#tree_container').append(root_node_template());
